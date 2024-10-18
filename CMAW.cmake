@@ -14,7 +14,7 @@
 include_guard (DIRECTORY)
 cmake_policy (SET CMP0007 NEW)
 
-set (CMAW_VERSION "0.1.3")
+set (CMAW_VERSION "0.1.4")
 
 set (CMAW_ARDUINOCLI_DL_VERSION      "latest" CACHE STRING   "arduino-cli version to use if there is need to download it")
 set (CMAW_ARDUINOCLI_BINARY_LOCATION ""       CACHE FILEPATH "Path to an existing arduino-cli binary on disk; empty to autodetect")
@@ -45,14 +45,15 @@ function (cmaw_internal_build_ardcli_downloadurl ARDCLI_VERSION)
     endif ()
     set (FILENAME "arduino-cli_${ARDCLI_VERSION}_Windows_${CMAW_INTERNAL_HOST_BITNESS}bit.tar.gz")
   elseif (UNIX)
-    if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
       message (FATAL_ERROR "arduino-cli does not provide prebuilts for free operating systems other than Linux-based ones")
     endif ()
     
     string (FIND "${CMAKE_HOST_SYSTEM_PROCESSOR}" "x86" IS_X86)
+    string (FIND "${CMAKE_HOST_SYSTEM_PROCESSOR}" "x64" IS_X64)
     string (FIND "${CMAKE_HOST_SYSTEM_PROCESSOR}" "arm" IS_ARM)
     
-    if (IS_X86)
+    if (IS_X86 OR IS_X64)
       set (FILENAME "arduino-cli_${ARDCLI_VERSION}_Linux_${CMAW_INTERNAL_HOST_BITNESS}bit.tar.gz")
     elseif (IS_ARM)
       if (CMAW_INTERNAL_HOST_BITNESS EQUAL 64)
