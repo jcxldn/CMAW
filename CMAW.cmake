@@ -14,7 +14,7 @@
 include_guard (DIRECTORY)
 cmake_policy (SET CMP0007 NEW)
 
-set (CMAW_VERSION "0.1.4")
+set (CMAW_VERSION "0.1.5")
 
 set (CMAW_ARDUINOCLI_DL_VERSION      "latest" CACHE STRING   "arduino-cli version to use if there is need to download it")
 set (CMAW_ARDUINOCLI_BINARY_LOCATION ""       CACHE FILEPATH "Path to an existing arduino-cli binary on disk; empty to autodetect")
@@ -278,6 +278,19 @@ function (cmaw_list_installed_cores OUT_IDS OUT_VERSIONS OUT_LATESTS OUT_NAMES)
   set (${OUT_NAMES} "${NAMES}" PARENT_SCOPE)
 endfunction ()
 
+function (cmaw_config_get_bool KEY OUTVAR)
+  cmaw_internal_ardcli_invoke(config get ${KEY})
+  
+  if (NOT CMAW_INTERNAL_INVOKE_OUTPUT MATCHES "(true|false)")
+    message (FATAL_ERROR "Could not parse arduino-cli config boolean output")
+  endif ()
+  set (${OUTVAR} "${CMAKE_MATCH_1}" PARENT_SCOPE)
+endfunction ()
+
+function (cmaw_config_set)
+  cmaw_internal_ardcli_invoke (config set ${ARGV})
+endfunction ()
+
 # Usage: cmaw_install_cores (<packager>:<arch>[@<version>]...)
 function (cmaw_install_cores)
   cmaw_internal_ardcli_invoke (core install ${ARGV})
@@ -387,6 +400,20 @@ function (cmaw_install_libraries)
   endif ()
   
   cmaw_internal_ardcli_invoke (lib install ${ARGV} ${BACK_ARG})
+endfunction ()
+
+# Usage: cmaw_install_libraries (<name>[@<version>]... [NO_DEPS])
+function (cmaw_install_libraries_git)
+  set (BACK_ARG "")
+  if (ARGC GREATER_EQUAL 1)
+    list (POP_BACK ARGV BACK_ARG)
+  endif ()
+  
+  if (BACK_ARG STREQUAL "NO_DEPS")
+    set (BACK_ARG "--no-deps")
+  endif ()
+  
+  cmaw_internal_ardcli_invoke (lib install --git-url ${ARGV} ${BACK_ARG})
 endfunction ()
 
 # Usage: cmaw_uninstall_libraries (<lib-name>...)
